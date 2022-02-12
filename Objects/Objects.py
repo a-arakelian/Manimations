@@ -118,11 +118,22 @@ class ThinkingBubble(VMobject):
 
 
 class Weight(VGroup):
-    def __init__(self, kg=1, unit_kg=1):
+    """class for getting Weight object
+
+    Parameters:
+        kg (int): how much does the kettlebell weight, defaults to 1
+        unit_kg (int): defaults to 1
+        scaling_factor (float): the size of defaults to kettlebell
+        kettlebell_color: default` WHITE
+        text_color: default` BLACK 
+        font_size: default` 30
+    """
+    def __init__(self, kg=1, unit_kg=1, scaling_factor=0.5, kettlebell_color=WHITE,
+                 text_color=BLACK, font_size=30):
         VGroup.__init__(self)
         self.weight = VGroup(
-            SVGMobject(os.path.join(path_to_SVG, 'weight.svg')).scale(0.5),
-            MathTex(f"{kg}", color=BLACK, font_size=30)).scale((kg/(2*unit_kg)) ** (1./3.)
+            SVGMobject(os.path.join(path_to_SVG, 'weight.svg')).scale(scaling_factor).set_color(kettlebell_color),
+            MathTex(f"{kg}", color=text_color, font_size=font_size)).scale((kg/(2*unit_kg)) ** (1./3.)
         )
 
         self.kettlebell = self.weight[0]
