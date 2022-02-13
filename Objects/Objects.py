@@ -131,6 +131,13 @@ class Weight(VGroup):
     def __init__(self, kg=1, unit_kg=1, scaling_factor=0.5, kettlebell_color=WHITE,
                  text_color=BLACK, font_size=30):
         VGroup.__init__(self)
+        self.kg = kg 
+        self.unit_kg = unit_kg 
+        self.scaling_factor = scaling_factor 
+        self.kettlebell_color = kettlebell_color  
+        self.text_color = text_color 
+        self.font_size = font_size
+
         self.weight = VGroup(
             SVGMobject(os.path.join(path_to_SVG, 'weight.svg')).scale(scaling_factor).set_color(kettlebell_color),
             MathTex(f"{kg}", color=text_color, font_size=font_size)).scale((kg/(2*unit_kg)) ** (1./3.)
