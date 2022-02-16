@@ -1,3 +1,7 @@
+"""
+Feb 2022, Hayk Tarkhanyan
+"""
+
 from manim import *
 import numpy as np
 import sys
@@ -7,108 +11,166 @@ sys.path.append('../')
 from Objects.Objects import *
 
 
+armenian_tex_template = TexTemplate()
+armenian_tex_template.add_to_preamble(r"\usepackage{armtex}")
+
+
 class Scales(Scene):
     def construct(self):
 
-        self.left_part_list_of_str = ['apple', 'apple', 'apple', 'apple',]
-        self.right_part_list_of_str = ['apple', 'apple', 'kb_7_kg', 'kb_13_kg']
+        self.left_part_list_of_str = ['apple', 'apple', 'apple', 'kb_15_kg']
+        self.right_part_list_of_str = ['apple', 'apple', 'kb_20_kg']
 
-        self.left_part_apples = [0, 1, 2, 3]
-        self.right_part_apples = [0, 1]
+        # print(self.rename_list_to_use_in_dict(self.left_part_list_of_str))
+        # self.left_part_apples = [0, 1, 2]
+        # self.right_part_apples = [0, 1]
 
-        self.add_objects(self.left_part_list_of_str, self.right_part_list_of_str)
+        self.add_objects(self.left_part_list_of_str, self.right_part_list_of_str, creation_runtime=0.4)
+
+
         # kettlebell = Weight(5)
-        # # self.play(Create(kettlebell.weight))
+        # self.play(Create(kettlebell))
+        # print(self.right_part)
+        # kettlebell = self.right_part[2]
+        # print('left', self.left_part)
+        print('right', self.right_part)
+
+        self.split_kettlebell_into_several(2, [5, 15], part='righ')
+        self.wait()
+        # print('left after split', self.left_part)
+        print('right after split', self.right_part)
+
+        # self.combine_kettlebells([2,3,4], 'right')
+        # # print('left after combine', self.left_part)
+        # print('right after combine', self.right_part)
+
+        self.remove_objects_from_both_parts(left_part_indexes=[3], right_part_indexes=[3])
+        self.wait()
+        self.remove_objects_from_both_parts(left_part_indexes=[0,1], right_part_indexes=[0,1])
+        # print('left after remove', self.left_part)
+        # print('right after remove', self.right_part)
+        # self.remove_objects_from_both_parts(left_part_indexes=[0,], right_part_indexes=[1])
+        self.show_answer()
+        # # print(new_kbs[0])
+        # # print(self.left_part[3].kg)
+        
+        # print('look here', self.mobjects)
+
+        # to_f = VGroup(self.mobjects[-1][1],  self.left_part[3].weight)
 
 
-        # new_kbs = self.split_kettlebell_into_several(kettlebell, [3, 1, 2], play_animation=False)
+        # self.play(FadeOut(to_f))
+
+        # self.remove_obj()
+
+
+
+        # print(new_kbs)
         # self.combine_kettlebells(new_kbs)
 
 
+    @staticmethod 
+    def rename_list_to_use_in_dict(mylist):
+        # https://stackoverflow.com/questions/30650474/python-rename-duplicates-in-list-with-progressive-numbers-without-sorting-list
+        newlist = []
+        for i, v in enumerate(mylist):
+            totalcount = mylist.count(v)
+            count = mylist[:i].count(v)
+            newlist.append(f"{v}_{count + 1}" if totalcount > 1 else v)
+        return newlist
+
+    @staticmethod
+    def get_indexes_for_removing(mylist):
+        return list(j - i for i, j in enumerate(mylist))
+
     @staticmethod
     def convert_list_of_items_to_list_of_mobjects(items):
+        """Function takes as input list of strings and converts it to list 
+        of mobjects
+
+        Note:
+            Options for input are` ['apple', 'kb_{n}_kg'(from 1 to 20), ADD LATER 
+    
+        Args:
+            items (list of strings): items to convert to mobjects
+
+        Returns:
+            mobjs (list of mobjects)
+
+        Examples:
+            convert_list_of_items_to_list_of_mobjects(['apple', 'apple', 'kb_2_kg'])
+        """
         mobjs = []
         for i in items:
             if i == "apple":
-                mobjs.append(SVGMobject('apple.svg').scale(0.4).set_color(GREEN))
+                mobjs.append(SVGMobject('apple.svg').scale(0.5).set_color(GREEN))
             if i.startswith('kb'):
                 kb_weight = int(i.split('_')[1])
                 mobjs.append(Weight(kb_weight))
         return mobjs
 
-    def allign_mobjs_next_to_eact_other(self,mobjs):
-        for i in range(len(mobjs)-1):
-            if self.is_weight(mobjs[i+1]):
-                if self.is_weight(mobjs[i]):
-                    mobjs[i+1].weight.next_to(mobjs[i].weight)
-                else:
-                    mobjs[i+1].weight.next_to(mobjs[i])
-            else:
-                if self.is_weight(mobjs[i]):
-                    mobjs[i+1].next_to(mobjs[i].weight)
-                else:
-                    mobjs[i+1].next_to(mobjs[i])
 
 
-    @staticmethod
-    def is_weight(mobj):
-        return "Weight" in str(mobj)
+    def add_objects(self, left_part, right_part, 
+                    left_part_shift=LEFT*4, right_part_shift=RIGHT*3, 
+                    display_option='FadeIn', creation_runtime=0.75):
+        """Function plays the animation of creating items and initilizes 
+        `self.left_part` and `self.right_part` attributes 
 
-    def add_objects(self, left_part, right_part):
-        left_part = self.convert_list_of_items_to_list_of_mobjects(left_part)
-        right_part = self.convert_list_of_items_to_list_of_mobjects(right_part)
+        Note:
+            self.left_part and self.right_part are VGroups
 
-        if self.is_weight(left_part[0]):
-            left_part[0].weight = left_part[0].weight.shift(LEFT * 4)
-        else:
-            left_part[0] = left_part[0].shift(LEFT * 4)
+        Args:
+            left_part (list of strings): see list of allowed options is docstring of funtion above 
+            right_part (list of strings):
+            left_part_shift (np.array): where to position left njar default` LEFT * 4
+            right_part_shift (np.array): where to position left njar default` RIGHT * 3
+            display_option (str): one of ['Create', "FadeIn"] default is FadeIn
+            creation_runtime (float): creation time for each item default` 0.75
 
-        if self.is_weight(right_part[0]):
-            right_part[0].weight = right_part[0].weight.shift(RIGHT)
-        else:
-            right_part[0] = right_part[0].shift(RIGHT)
+        Returns:
+            None
+        """
+        self.left_part = self.convert_list_of_items_to_list_of_mobjects(left_part)
+        self.right_part = self.convert_list_of_items_to_list_of_mobjects(right_part)
+
+        self.left_part = VGroup(*self.left_part).arrange().shift(left_part_shift) 
+        self.right_part = VGroup(*self.right_part).arrange().shift(right_part_shift)
+
+        # bad code, figure out a way to run a loop over both left part and right part, .copy or + or .add() methods didn't work, perhaps I'll never fix this though
+        for i in self.left_part:
+            if display_option.lower().startswith('cr'):
+                self.play(Create(i), run_time=creation_runtime) 
+            elif display_option.lower().startswith('fade'):
+                self.play(FadeIn(i), run_time=creation_runtime) 
+
+        for i in self.right_part:
+            if display_option.lower().startswith('cr'):
+                self.play(Create(i), run_time=creation_runtime) 
+            elif display_option.lower().startswith('fade'):
+                self.play(FadeIn(i), run_time=creation_runtime) 
 
 
-
-
-
-
-        self.allign_mobjs_next_to_eact_other(left_part)
-        self.allign_mobjs_next_to_eact_other(right_part)
-
-        self.left_part = left_part 
-        self.right_part = right_part
-
-        # print(all_items[0].weight)
-        # self.play(Create(all_items[0].weight))
-
-
-        # print(all_items[1])
-        # self.play(Create(all_items[1].shift(RIGHT*3)))
-
-        for i in left_part + right_part:
-            print(str(i))
-            if "Weight" in str(i):
-                print(i)
-                self.play(Create(i.weight), run_time=0.75)#.shift(RIGHT*i)))
-            else:
-                self.play(Create(i), run_time=0.75)#.shift(RIGHT*1)))
-
-        big_kettlebell = self.combine_kettlebells([right_part[-2], right_part[-1]], play_animation=True)
-        # self.split_kettlebell_into_several(big_kettlebell, [3,3,4])
-        self.remove_obj()
+        # big_kettlebell = self.combine_kettlebells([right_part[-2], right_part[-1]], play_animation=True)
+        # # self.split_kettlebell_into_several(big_kettlebell, [3,3,4])
+        # self.remove_obj()
 
 
 
-    def remove_obj(self, objs='2_apple', part='left'):
-        num = int(objs.split('_')[0])
+    def remove_objects_from_both_parts(self, left_part_indexes, right_part_indexes):
+        assert len(left_part_indexes) == len(right_part_indexes), f'when removing from both parts number of items shoul be equal, left part is {left_part} and right part is {right_part}'
         
-        print(self.left_part)
-        print(self.left_part[self.left_part_apples[0]])
 
-        for i in range(num):
-            self.play(FadeOut(self.left_part[self.left_part_apples[i]]))
-            self.play(FadeOut(self.right_part[self.right_part_apples[i]]))
+        for i in range(len(left_part_indexes)):
+            to_fade_out = VGroup(self.left_part[left_part_indexes[i]], self.right_part[right_part_indexes[i]])
+            self.play(FadeOut(to_fade_out))
+            
+        for i in self.get_indexes_for_removing(left_part_indexes):
+            self.left_part.remove(self.left_part[i])
+
+        for i in self.get_indexes_for_removing(right_part_indexes):
+            self.right_part.remove(self.right_part[i])
+                        
         print('removes')
             
         # objs = [i for i, j in enumerate(self.left_part_list_of_str) if j == '']
@@ -121,41 +183,87 @@ class Scales(Scene):
 
 
 
-    @staticmethod
-    def kettlebell_weights_vgroup(kettlebells):
-        return VGroup(*[i.weight for i in kettlebells])
+    # @staticmethod
+    # def kettlebell_weights_vgroup(kettlebells):
+    #     return VGroup(*kettlebells)
 
-    def split_kettlebell_into_several(self, kettlebell, new_weights, play_animation=True):
-        if kettlebell.kg != sum(new_weights):
-            raise Exception(f"You can't split {kettlebell.kg} kettlebell into kettlebells with weights {new_weights}")
+    def split_kettlebell_into_several(self, kettlebell_index, new_weights, part='left'):
+        """Function splits given kettlebell into new ones with given weights
+
+        Args:
+            kettlebell_index (int): index in its part list
+            new_weights (list of int): weights of smaller kettlebells 
+            part (string): either 'left' or 'right' 
+
+        Note:
+            also updates `self.left_part` or `self.right_part` attributes
+
+        Raises:
+            Exception: if sum of new_weights isn't equal to kettlebells weight
+
+
+        """
+        kettlebell = self.left_part[kettlebell_index] if part.lower().startswith('left') else self.right_part[kettlebell_index]
+
+        if part.lower().startswith('le'):
+            if kettlebell.kg != sum(new_weights):
+                raise Exception(f"You can't split {kettlebell.kg} kettlebell into kettlebells with weights {new_weights}")
+        else:
+            if kettlebell.kg != sum(new_weights):
+                raise Exception(f"You can't split {kettlebell.kg} kettlebell into kettlebells with weights {new_weights}")
+
 
 
         new_kettlebells = [Weight(w) for w in new_weights]
+        new_weights_vgroup = VGroup(*new_kettlebells).arrange()
 
-        for i in range(len(new_kettlebells)-1):
-            new_kettlebells[i+1].weight.next_to(new_kettlebells[i].weight, RIGHT)
+        new_weights_vgroup.move_to(kettlebell.weight.get_center() + np.array([0.3 * len(new_weights),0,0]))
+        self.play(ReplacementTransform(kettlebell, new_weights_vgroup))
 
-
-        all_weights = self.kettlebell_weights_vgroup(new_kettlebells)
-
-        self.wait(1)
-        all_weights.move_to(kettlebell.weight.get_center() + np.array([1,2,0]))
-
-        if play_animation:
-            self.play(Transform(kettlebell.weight, all_weights))
-            # self.remove(kettlebell.weight)
-
-        return new_kettlebells
+        if part.lower().startswith('le'):
+            self.left_part.remove(kettlebell)
+            self.left_part.add(*new_kettlebells)
+        if part.lower().startswith('ri'):
+            self.right_part.remove(kettlebell)
+            self.right_part.add(*new_kettlebells)
 
 
-    def combine_kettlebells(self, kettlebells, play_animation=True):
+
+    def combine_kettlebells(self, kettlebells_indexes, part='left'):
+        kettlebells = list(self.left_part[i] for i in kettlebells_indexes) if part.lower().startswith('le') else list(self.right_part[i] for i in kettlebells_indexes)
+        # kettlebells = VGroup(*[i.weight for i in self.left_part[kettlebells_indexes]]) if part.lower().startswith('le') else VGroup(*[i.weight for i in self.right_part[kettlebells_indexes]])0
+        
+
         big_kettlebell_weight = sum([i.kg for i in kettlebells])
-        big_kettlebell_position = np.mean([i.weight.get_center() for i in kettlebells], axis=0)
-        print('New_kettlebell pos', big_kettlebell_position)
+
+        # in centre
+        # big_kettlebell_position = np.mean([i.weight.get_center() for i in kettlebells], axis=0)
+        # next to previous
+        big_kettlebell_position = kettlebells[0].weight.get_center()
+        
+
         big_kettlebell = Weight(big_kettlebell_weight)
 
-        big_kettlebell.weight.move_to(big_kettlebell_position)
+        big_kettlebell.move_to(big_kettlebell_position + np.array([0.1, 0, 0]))
 
-        if play_animation:
-            self.play(Transform(VGroup(*[i.weight for i in kettlebells]), big_kettlebell.weight))
-        return big_kettlebell
+        self.play(ReplacementTransform(VGroup(*kettlebells), big_kettlebell))
+
+        if part.lower().startswith('le'):
+            self.left_part.remove(*kettlebells)
+            self.left_part.add(big_kettlebell)
+        if part.lower().startswith('ri'):
+            self.right_part.remove(*kettlebells)
+            self.right_part.add(big_kettlebell)
+
+    def show_answer(self):
+        equal = MathTex('=').scale(4)
+        
+        self.play(Write(equal))
+
+        self.play(self.left_part.animate.next_to(equal, LEFT))
+
+        self.play(self.right_part.animate.next_to(equal, RIGHT))
+        self.play(ReplacementTransform(self.right_part, Text(f"{self.right_part[0].kg} կգ").scale(1.6).next_to(equal, RIGHT)))
+        
+        # self.left_part.move_to(equal)
+        # self.right_part.move_to(equal)

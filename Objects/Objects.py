@@ -146,6 +146,8 @@ class Weight(VGroup):
         self.kettlebell = self.weight[0]
         self.weight_value = self.weight[1]
 
+        self.add(self.kettlebell, self.weight_value)
+
 
 
 
